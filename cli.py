@@ -117,9 +117,9 @@ Credentials are read from environment variables:
 
 def print_request_summary(args: argparse.Namespace) -> None:
     print()
-    print(_c("─" * 50, CYAN))
+    print(_c("-" * 50, CYAN))
     print(_c("  ORDER REQUEST SUMMARY", BOLD + CYAN))
-    print(_c("─" * 50, CYAN))
+    print(_c("-" * 50, CYAN))
     print(f"  Symbol     : {_c(args.symbol.upper(), BOLD)}")
     print(f"  Side       : {_c(args.side.upper(), BOLD)}")
     print(f"  Type       : {_c(args.order_type.upper(), BOLD)}")
@@ -128,16 +128,16 @@ def print_request_summary(args: argparse.Namespace) -> None:
         print(f"  Price      : {_c(str(args.price), BOLD)}")
     if args.stop_price:
         print(f"  Stop Price : {_c(str(args.stop_price), BOLD)}")
-    print(_c("─" * 50, CYAN))
+    print(_c("-" * 50, CYAN))
     print()
 
 
 def print_order_result(result) -> None:
     status_colour = GREEN if result.is_filled() else YELLOW
     print()
-    print(_c("─" * 50, GREEN))
+    print(_c("-" * 50, GREEN))
     print(_c("  ORDER RESPONSE", BOLD + GREEN))
-    print(_c("─" * 50, GREEN))
+    print(_c("-" * 50, GREEN))
     print(f"  Order ID      : {_c(str(result.order_id), BOLD)}")
     print(f"  Symbol        : {result.symbol}")
     print(f"  Side          : {result.side}")
@@ -150,7 +150,7 @@ def print_order_result(result) -> None:
         print(f"  Limit Price   : {result.price}")
     if result.time_in_force:
         print(f"  Time-in-Force : {result.time_in_force}")
-    print(_c("─" * 50, GREEN))
+    print(_c("-" * 50, GREEN))
     print()
 
 
@@ -202,32 +202,32 @@ def main() -> None:
         )
 
         print_order_result(result)
-        print(_c("  ✅  Order placed successfully!", BOLD + GREEN))
+        print(_c("  Order placed successfully!", BOLD + GREEN))
         print()
         logger.info("Order completed successfully. orderId=%s", result.order_id)
 
     except ValueError as exc:
-        print(_c(f"\n  ❌  Validation error: {exc}\n", RED))
+        print(_c(f"\n  Validation error: {exc}\n", RED))
         logger.error("Validation error: %s", exc)
         sys.exit(1)
 
     except BinanceAPIError as exc:
-        print(_c(f"\n  ❌  Binance API error [{exc.code}]: {exc.message}\n", RED))
+        print(_c(f"\n  Binance API error [{exc.code}]: {exc.message}\n", RED))
         logger.error("BinanceAPIError: code=%s message=%s", exc.code, exc.message)
         sys.exit(1)
 
     except requests.exceptions.Timeout:
-        print(_c("\n  ❌  Request timed out. Check your network or try again.\n", RED))
+        print(_c("\n  Request timed out. Check your network or try again.\n", RED))
         logger.error("Request timed out.")
         sys.exit(1)
 
     except requests.exceptions.ConnectionError as exc:
-        print(_c(f"\n  ❌  Connection failed: {exc}\n", RED))
+        print(_c(f"\n  Connection failed: {exc}\n", RED))
         logger.error("Connection error: %s", exc)
         sys.exit(1)
 
     except Exception as exc:
-        print(_c(f"\n  ❌  Unexpected error: {exc}\n", RED))
+        print(_c(f"\n  Unexpected error: {exc}\n", RED))
         logger.exception("Unexpected error: %s", exc)
         sys.exit(1)
 

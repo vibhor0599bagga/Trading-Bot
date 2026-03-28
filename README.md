@@ -1,11 +1,11 @@
-#  Trading Bot — Binance Futures Testnet (USDT-M)
+# Trading Bot — Binance Futures Testnet (USDT-M)
 
 A clean, production-structured Python CLI application for placing orders on the Binance Futures Testnet.  
 Supports **MARKET**, **LIMIT**, and **STOP_MARKET** orders with full logging, validation, and error handling.
 
 ---
 
-##  Project Structure
+## Project Structure
 
 ```
 trading_bot/
@@ -22,7 +22,7 @@ trading_bot/
 
 ---
 
-##  Setup
+## Setup
 
 ### 1. Get Testnet Credentials
 
@@ -90,7 +90,7 @@ python cli.py --api-key YOUR_KEY --api-secret YOUR_SECRET ...
 
 ---
 
-## 🚀 How to Run
+## How to Run
 
 ### Place a MARKET BUY order
 
@@ -130,21 +130,21 @@ python cli.py --help
 
 ---
 
-## 📤 Sample Output
+## Sample Output
 
 ```
-──────────────────────────────────────────────────
+--------------------------------------------------
   ORDER REQUEST SUMMARY
-──────────────────────────────────────────────────
+--------------------------------------------------
   Symbol     : BTCUSDT
   Side       : BUY
   Type       : MARKET
   Quantity   : 0.01
-──────────────────────────────────────────────────
+--------------------------------------------------
 
-──────────────────────────────────────────────────
+--------------------------------------------------
   ORDER RESPONSE
-──────────────────────────────────────────────────
+--------------------------------------------------
   Order ID      : 3799370987
   Symbol        : BTCUSDT
   Side          : BUY
@@ -153,14 +153,14 @@ python cli.py --help
   Orig Qty      : 0.01
   Executed Qty  : 0.01
   Avg Price     : 96523.50000
-──────────────────────────────────────────────────
+--------------------------------------------------
 
    Order placed successfully!
 ```
 
 ---
 
-##  Logging
+## Logging
 
 All activity is logged to `trading_bot.log` in the project root.
 
@@ -179,7 +179,7 @@ Example log entries:
 
 ---
 
-## 🛡️ Error Handling
+## Error Handling
 
 | Error Type           | What happens                                      |
 | -------------------- | ------------------------------------------------- |
@@ -191,7 +191,7 @@ Example log entries:
 
 ---
 
-## 📐 Architecture
+## Architecture
 
 ```
 CLI Layer (cli.py)
@@ -218,7 +218,7 @@ Logging (bot/logging_config.py)
 
 ---
 
-## 📌 Assumptions
+## Assumptions
 
 1. **Testnet only** — the base URL is hardcoded to `https://testnet.binancefuture.com`. Do not use real credentials.
 2. **USDT-M Futures** — all orders are placed on USDT-margined perpetual futures contracts.
@@ -229,7 +229,7 @@ Logging (bot/logging_config.py)
 
 ---
 
-## 🔧 Dependencies
+## Dependencies
 
 | Package         | Purpose                        |
 | --------------- | ------------------------------ |
