@@ -14,11 +14,3 @@
 2026-03-28 15:37:48 | DEBUG    | urllib3.connectionpool | https://demo-fapi.binance.com:443 "POST /fapi/v1/order?price=66330&quantity=0.01&recvWindow=5000&side=BUY&symbol=BTCUSDT&timeInForce=GTC&timestamp=1774692466649&type=LIMIT&signature=531fa157347b2c4b8b4340e43ac7e5b0712ecb15ee0949c23f58bfbad4b26812 HTTP/1.1" 200 None
 2026-03-28 15:37:48 | INFO     | bot.orders | Order response → orderId=13001826012 status=NEW executedQty=0.000 avgPrice=0.00
 2026-03-28 15:37:48 | INFO     | __main__ | Order completed successfully. orderId=13001826012
-2026-03-28 15:39:12 | DEBUG    | bot.client | BinanceClient initialised (base_url=https://demo-fapi.binance.com)
-2026-03-28 15:39:12 | INFO     | bot.orders | Order request → SELL BTCUSDT STOP_MARKET qty=0.01
-2026-03-28 15:39:12 | INFO     | bot.client | Placing order → symbol=BTCUSDT side=SELL type=STOP_MARKET qty=0.01 price=N/A
-2026-03-28 15:39:12 | INFO     | bot.client | query_string=quantity=0.01&recvWindow=5000&side=SELL&stopPrice=66350&symbol=BTCUSDT&timestamp=1774692552759&type=STOP_MARKET
-2026-03-28 15:39:12 | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): demo-fapi.binance.com:443
-2026-03-28 15:39:13 | DEBUG    | urllib3.connectionpool | https://demo-fapi.binance.com:443 "POST /fapi/v1/order?quantity=0.01&recvWindow=5000&side=SELL&stopPrice=66350&symbol=BTCUSDT&timestamp=1774692552759&type=STOP_MARKET&signature=3babd2a6e2d5cb7fa80da7987ff67da29675bdf29f73cda9ebc55fd50eb4df38 HTTP/1.1" 400 115
-2026-03-28 15:39:13 | ERROR    | bot.client | Binance HTTP error: status=400 code=-4120 msg=Order type not supported for this endpoint. Please use the Algo Order API endpoints instead. body={'code': -4120, 'msg': 'Order type not supported for this endpoint. Please use the Algo Order API endpoints instead.'}
-2026-03-28 15:39:13 | ERROR    | __main__ | BinanceAPIError: code=-4120 message=Order type not supported for this endpoint. Please use the Algo Order API endpoints instead.
