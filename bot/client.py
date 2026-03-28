@@ -16,8 +16,8 @@ from bot.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-# Default to documented futures testnet host; override via BASE_URL env or constructor.
-TESTNET_BASE_URL = "https://demo-fapi.binance.com"
+# Default to assignment’s testnet host; override via BASE_URL env or constructor.
+TESTNET_BASE_URL = "https://testnet.binancefuture.com"
 DEFAULT_TIMEOUT = 10  # seconds
 
 

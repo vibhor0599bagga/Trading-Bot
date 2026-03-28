@@ -1,11 +1,11 @@
-# 🤖 Trading Bot — Binance Futures Testnet (USDT-M)
+#  Trading Bot — Binance Futures Testnet (USDT-M)
 
 A clean, production-structured Python CLI application for placing orders on the Binance Futures Testnet.  
 Supports **MARKET**, **LIMIT**, and **STOP_MARKET** orders with full logging, validation, and error handling.
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 trading_bot/
@@ -22,7 +22,7 @@ trading_bot/
 
 ---
 
-## ⚙️ Setup
+##  Setup
 
 ### 1. Get Testnet Credentials
 
@@ -73,6 +73,13 @@ Then load it before running:
 
 ```bash
 export $(cat .env | xargs)
+```
+
+**Optional — override base URL:**
+The default target is `https://testnet.binancefuture.com`. To point elsewhere (e.g., demo endpoints), set `BASE_URL` before running:
+
+```bash
+export BASE_URL=https://demo-fapi.binance.com
 ```
 
 **Option C — CLI flags (least secure, use for quick testing only):**
@@ -148,12 +155,12 @@ python cli.py --help
   Avg Price     : 96523.50000
 ──────────────────────────────────────────────────
 
-  ✅  Order placed successfully!
+   Order placed successfully!
 ```
 
 ---
 
-## 📋 Logging
+##  Logging
 
 All activity is logged to `trading_bot.log` in the project root.
 
@@ -175,7 +182,7 @@ Example log entries:
 ## 🛡️ Error Handling
 
 | Error Type           | What happens                                      |
-|----------------------|---------------------------------------------------|
+| -------------------- | ------------------------------------------------- |
 | Invalid input        | `ValueError` caught → user-friendly message shown |
 | Binance API error    | `BinanceAPIError` → code + message printed        |
 | Network timeout      | Friendly timeout message + logged                 |
@@ -224,9 +231,9 @@ Logging (bot/logging_config.py)
 
 ## 🔧 Dependencies
 
-| Package         | Purpose                          |
-|-----------------|----------------------------------|
-| `requests`      | HTTP client for REST API calls   |
-| `python-dotenv` | Optional `.env` file loading     |
+| Package         | Purpose                        |
+| --------------- | ------------------------------ |
+| `requests`      | HTTP client for REST API calls |
+| `python-dotenv` | Optional `.env` file loading   |
 
 No third-party Binance SDK required.
