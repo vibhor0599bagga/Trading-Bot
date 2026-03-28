@@ -1,12 +1,12 @@
 """
-Binance Futures Testnet REST client.
-Handles authentication (HMAC-SHA256 signing), request execution,
-logging, and error handling. No business logic lives here.
+Binance Futures Testnet client with manual HMAC signing.
+Handles authentication, request execution, logging, and error handling.
 """
 
-import hashlib
-import hmac
+import os
 import time
+import hmac
+import hashlib
 from typing import Any, Dict, Optional
 from urllib.parse import urlencode
 
@@ -16,9 +16,9 @@ from bot.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-TESTNET_BASE_URL = "https://testnet.binancefuture.com"
+# Default to documented futures testnet host; override via BASE_URL env or constructor.
+TESTNET_BASE_URL = "https://demo-fapi.binance.com"
 DEFAULT_TIMEOUT = 10  # seconds
-RECV_WINDOW = 5000    # milliseconds
 
 
 class BinanceAPIError(Exception):
@@ -44,102 +44,22 @@ class BinanceClient:
         self,
         api_key: str,
         api_secret: str,
-        base_url: str = TESTNET_BASE_URL,
+        base_url: Optional[str] = None,
         timeout: int = DEFAULT_TIMEOUT,
     ):
+        api_key = api_key.strip()
+        api_secret = api_secret.strip()
         if not api_key or not api_secret:
             raise ValueError("Both api_key and api_secret must be provided.")
         self._api_key = api_key
         self._api_secret = api_secret
-        self._base_url = base_url.rstrip("/")
+        env_base_url = os.getenv("BASE_URL", "").strip()
+        resolved_base_url = base_url or env_base_url or TESTNET_BASE_URL
+        self._base_url = resolved_base_url.rstrip("/")
         self._timeout = timeout
         self._session = requests.Session()
-        self._session.headers.update(
-            {
-                "X-MBX-APIKEY": self._api_key,
-                "Content-Type": "application/x-www-form-urlencoded",
-            }
-        )
+        self._session.headers.update({"X-MBX-APIKEY": self._api_key})
         logger.debug("BinanceClient initialised (base_url=%s)", self._base_url)
-
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
-
-    def _timestamp(self) -> int:
-        return int(time.time() * 1000)
-
-    def _sign(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Add timestamp + HMAC-SHA256 signature to params dict."""
-        params["timestamp"] = self._timestamp()
-        params["recvWindow"] = RECV_WINDOW
-        query_string = urlencode(params)
-        signature = hmac.new(
-            self._api_secret.encode("utf-8"),
-            query_string.encode("utf-8"),
-            hashlib.sha256,
-        ).hexdigest()
-        params["signature"] = signature
-        return params
-
-    def _request(
-        self,
-        method: str,
-        endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        """
-        Execute a signed HTTP request.
-        Logs request params (DEBUG) and response body (DEBUG).
-        Raises BinanceAPIError on API-level errors.
-        Raises requests.exceptions.* on network/timeout failures.
-        """
-        params = params or {}
-        signed_params = self._sign(params.copy())
-
-        url = f"{self._base_url}{endpoint}"
-        logger.debug("REQUEST  %s %s | params=%s", method.upper(), endpoint, signed_params)
-
-        try:
-            if method.upper() == "POST":
-                resp = self._session.post(url, data=signed_params, timeout=self._timeout)
-            elif method.upper() == "GET":
-                resp = self._session.get(url, params=signed_params, timeout=self._timeout)
-            else:
-                raise ValueError(f"Unsupported HTTP method: {method}")
-
-            logger.debug(
-                "RESPONSE %s %s | status=%d | body=%s",
-                method.upper(),
-                endpoint,
-                resp.status_code,
-                resp.text,
-            )
-
-            data = resp.json()
-
-            # Binance error payload: {"code": -XXXX, "msg": "..."}
-            if isinstance(data, dict) and data.get("code", 0) < 0:
-                raise BinanceAPIError(
-                    status_code=resp.status_code,
-                    code=data["code"],
-                    message=data.get("msg", "Unknown error"),
-                )
-
-            resp.raise_for_status()
-            return data
-
-        except requests.exceptions.Timeout:
-            logger.error("Request timed out: %s %s", method.upper(), endpoint)
-            raise
-        except requests.exceptions.ConnectionError as exc:
-            logger.error("Connection error: %s %s | %s", method.upper(), endpoint, exc)
-            raise
-        except BinanceAPIError:
-            raise
-        except requests.exceptions.HTTPError as exc:
-            logger.error("HTTP error: %s", exc)
-            raise
 
     # ------------------------------------------------------------------
     # Public API methods
@@ -147,10 +67,12 @@ class BinanceClient:
 
     def place_order(self, **kwargs) -> Dict[str, Any]:
         """
-        POST /fapi/v1/order
-        Accepts keyword arguments matching Binance order params.
-        Returns the raw order response dict.
+        POST /fapi/v1/order — places an order with manual HMAC signing.
+        Quantity is stringified to avoid float drift.
         """
+        if "quantity" in kwargs and kwargs["quantity"] is not None:
+            kwargs = {**kwargs, "quantity": str(kwargs["quantity"])}
+
         logger.info(
             "Placing order → symbol=%s side=%s type=%s qty=%s price=%s",
             kwargs.get("symbol"),
@@ -159,12 +81,82 @@ class BinanceClient:
             kwargs.get("quantity"),
             kwargs.get("price", "N/A"),
         )
-        return self._request("POST", "/fapi/v1/order", params=kwargs)
+        return self._signed_request("POST", "/fapi/v1/order", kwargs)
 
     def get_exchange_info(self) -> Dict[str, Any]:
         """GET /fapi/v1/exchangeInfo — useful for validating symbols."""
-        return self._request("GET", "/fapi/v1/exchangeInfo", params={})
+        return self._request("GET", "/fapi/v1/exchangeInfo", params=None, signed=False)
 
     def get_account(self) -> Dict[str, Any]:
         """GET /fapi/v2/account — returns account balance and positions."""
-        return self._request("GET", "/fapi/v2/account", params={})
+        return self._signed_request("GET", "/fapi/v2/account", params=None)
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        params: Optional[Any],
+        signed: bool,
+    ) -> Dict[str, Any]:
+        url = f"{self._base_url}{path}"
+        response = self._session.request(
+            method=method,
+            url=url,
+            params=params,
+            timeout=self._timeout,
+        )
+        return self._handle_response(response)
+
+    def _signed_request(
+        self,
+        method: str,
+        path: str,
+        params: Optional[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        params = params.copy() if params else {}
+        params.setdefault("timestamp", int(time.time() * 1000))
+        params.setdefault("recvWindow", 5000)
+
+        # Sort parameters before signing to ensure deterministic query string.
+        sorted_items = sorted(params.items())
+        query_string = urlencode(sorted_items, doseq=True)
+        logger.info("query_string=%s", query_string)
+
+        signature = hmac.new(
+            self._api_secret.encode(),
+            query_string.encode(),
+            hashlib.sha256,
+        ).hexdigest()
+
+        signed_items = list(sorted_items) + [("signature", signature)]
+
+        return self._request(method, path, signed_items, signed=True)
+
+    def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
+        if response.status_code // 100 != 2:
+            try:
+                payload = response.json()
+                code = payload.get("code", -1)
+                message = payload.get("msg", response.text)
+            except Exception:
+                payload = None
+                code = -1
+                message = response.text
+            logger.error(
+                "Binance HTTP error: status=%s code=%s msg=%s body=%s",
+                response.status_code,
+                code,
+                message,
+                payload,
+            )
+            raise BinanceAPIError(response.status_code, code, message)
+
+        try:
+            return response.json()
+        except ValueError:
+            logger.error("Failed to decode JSON response: %s", response.text)
+            raise BinanceAPIError(response.status_code, -1, "Invalid JSON response")

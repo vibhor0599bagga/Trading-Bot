@@ -22,8 +22,9 @@ import os
 import sys
 
 import requests
+from dotenv import load_dotenv
 
-from bot.client import BinanceAPIError, BinanceClient
+from bot.client import TESTNET_BASE_URL, BinanceAPIError, BinanceClient
 from bot.logging_config import get_logger
 from bot.orders import place_order
 
@@ -156,12 +157,15 @@ def print_order_result(result) -> None:
 # ── Main ───────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    load_dotenv()
+
     parser = build_parser()
     args = parser.parse_args()
 
     # ── Resolve credentials ──────────────────────────────────────────────
     api_key = args.api_key or os.environ.get("BINANCE_API_KEY", "")
     api_secret = args.api_secret or os.environ.get("BINANCE_API_SECRET", "")
+    base_url = os.environ.get("BASE_URL", "").strip()
 
     if not api_key or not api_secret:
         print(
@@ -179,7 +183,11 @@ def main() -> None:
     print_request_summary(args)
 
     # ── Initialise client ────────────────────────────────────────────────
-    client = BinanceClient(api_key=api_key, api_secret=api_secret)
+    client = BinanceClient(
+        api_key=api_key,
+        api_secret=api_secret,
+        base_url=base_url or TESTNET_BASE_URL,
+    )
 
     # ── Place order ──────────────────────────────────────────────────────
     try:
