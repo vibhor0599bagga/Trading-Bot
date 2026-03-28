@@ -122,6 +122,16 @@ python cli.py --symbol BTCUSDT --side SELL --type LIMIT --quantity 0.01 --price 
 python cli.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.01 --stop-price 85000
 ```
 
+### Use interactive mode (lightweight UI)
+
+Let the CLI prompt you for missing inputs instead of passing flags:
+
+```bash
+python cli.py --interactive
+```
+
+You can still prefill any flag (e.g., `--symbol BTCUSDT`) and the prompts will ask only for the rest.
+
 ### View all CLI options
 
 ```bash

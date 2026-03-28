@@ -63,25 +63,25 @@ Credentials are read from environment variables:
     )
 
     parser.add_argument(
-        "--symbol", required=True,
+        "--symbol", required=False,
         help="Trading pair symbol, e.g. BTCUSDT",
         metavar="SYMBOL",
     )
     parser.add_argument(
-        "--side", required=True,
+        "--side", required=False,
         choices=["BUY", "SELL", "buy", "sell"],
         help="Order side: BUY or SELL",
         metavar="SIDE",
     )
     parser.add_argument(
-        "--type", required=True,
+        "--type", required=False,
         dest="order_type",
         choices=["MARKET", "LIMIT", "STOP_MARKET", "market", "limit", "stop_market"],
         help="Order type: MARKET, LIMIT, or STOP_MARKET",
         metavar="TYPE",
     )
     parser.add_argument(
-        "--quantity", required=True,
+        "--quantity", required=False,
         help="Order quantity (e.g. 0.01)",
         metavar="QTY",
     )
@@ -110,7 +110,39 @@ Credentials are read from environment variables:
         help="Binance API secret (overrides BINANCE_API_SECRET env var)",
         metavar="SECRET",
     )
+    parser.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Prompt for inputs instead of requiring flags.",
+    )
     return parser
+def _prompt(label: str, default: str | None = None) -> str:
+    suffix = f" [{default}]" if default else ""
+    while True:
+        raw = input(f"{label}{suffix}: ").strip()
+        if not raw and default is not None:
+            return default
+        if raw:
+            return raw
+        print("Please enter a value.")
+
+
+def collect_interactive_args(args: argparse.Namespace) -> argparse.Namespace:
+    """Fill missing arguments via interactive prompts."""
+    args.symbol = args.symbol or _prompt("Symbol (e.g. BTCUSDT)").upper()
+    args.side = (args.side or _prompt("Side [BUY/SELL]", "BUY")).upper()
+    args.order_type = (args.order_type or _prompt("Type [MARKET/LIMIT/STOP_MARKET]", "MARKET")).upper()
+    args.quantity = args.quantity or _prompt("Quantity (e.g. 0.01)")
+
+    if args.order_type == "LIMIT":
+        args.price = args.price or _prompt("Limit price")
+    if args.order_type == "STOP_MARKET":
+        args.stop_price = args.stop_price or _prompt("Stop price")
+
+    args.api_key = args.api_key or os.environ.get("BINANCE_API_KEY", "") or _prompt("API key")
+    args.api_secret = args.api_secret or os.environ.get("BINANCE_API_SECRET", "") or _prompt("API secret")
+    return args
+
 
 
 # ── Output helpers ─────────────────────────────────────────────────────────
@@ -161,6 +193,13 @@ def main() -> None:
 
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.interactive:
+        args = collect_interactive_args(args)
+    else:
+        missing = [name for name in ("symbol", "side", "order_type", "quantity") if not getattr(args, name)]
+        if missing:
+            parser.error(f"Missing required arguments: {', '.join(missing)}. Use --interactive to be prompted.")
 
     # ── Resolve credentials ──────────────────────────────────────────────
     api_key = args.api_key or os.environ.get("BINANCE_API_KEY", "")
